@@ -485,48 +485,13 @@ GROUP BY level;
 
 **Django → Kafka → queue → consumer → daily → query results**
 
- ┌──────────────────┐
- │   Django App     │
- │ (Campaign Logic) │
- └────────┬─────────┘
-          │
-          │ JSON Event (timestamp, level, message)
-          ▼
- ┌─────────────────────────┐
- │   Kafka Topic:          │
- │ campaign.event_tracking │
- └────────┬────────────────┘
-          │
-          │ ClickHouse reads automatically
-          ▼
- ┌──────────────────┐
- │ ClickHouse Kafka │
- │ Table: queue     │
- │ (raw events)     │
- └────────┬─────────┘
-          │
-          │ Materialized View
-          ▼
- ┌───────────────────────────┐
- │ Materialized View: consumer│
- │ Aggregates by day & level │
- └────────┬──────────────────┘
-          │ Inserts results
-          ▼
- ┌──────────────────┐
- │ ClickHouse Table │
- │ daily            │
- │ (aggregated data)│
- └────────┬─────────┘
-          │
-          │ Query for dashboards or reports
-          ▼
- ┌─────────────────────────┐
- │ Example:                │
- │ SELECT level, sum(total)│
- │ FROM daily              │
- │ GROUP BY level;         │
- └─────────────────────────┘
+ flowchart TD
+    A[Django App<br>(Campaign Logic)] -->|Produce JSON Event<br>(timestamp, level, message)| B[Kafka Topic<br>campaign.event_tracking]
+    B --> C[ClickHouse Kafka Table<br>queue (raw events)]
+    C --> D[Materialized View<br>consumer]
+    D --> E[ClickHouse Table<br>daily (aggregated data)]
+    E --> F[Dashboard / Reports<br>SELECT level, sum(total) FROM daily GROUP BY level]
+
 Flow Explanation
 Django produces events → JSON with timestamp, level, message.
 
