@@ -490,18 +490,18 @@ GROUP BY level;
 flowchart LR
 
     subgraph Direct_Insertion [Direct Insertion Approach]
-        A1[Django App (Campaign Logic)] -->|Produce JSON Event<br>(delivered/open/click/bounce)| B1[Kafka Topic: campaign.event_tracking]
-        B1 --> C1[Python Consumer]
-        C1 --> D1[ClickHouse Table: email_events (raw)]
-        D1 --> E1[Dashboard / Reports: query email_events]
+        A1[Django App] -->|Produce JSON Event| B1[Kafka Topic: campaign.event_tracking]
+        B1 --> C1[Python Consumer - Manual aggregation, slower]
+        C1 --> D1[ClickHouse Table: email_events]
+        D1 --> E1[Dashboard / Reports - query email_events]
     end
 
     subgraph Materialized_View [Materialized View Approach]
-        A2[Django App (Campaign Logic)] -->|Produce JSON Event<br>(delivered/open/click/bounce)| B2[Kafka Topic: campaign.event_tracking]
-        B2 --> C2[ClickHouse Kafka Table: queue (raw events)]
-        C2 --> D2[Materialized View: consumer]
-        D2 --> E2[ClickHouse Table: daily (aggregated)]
-        E2 --> F2[Dashboard / Reports: SELECT level, sum(total) FROM daily GROUP BY level]
+        A2[Django App] -->|Produce JSON Event| B2[Kafka Topic: campaign.event_tracking]
+        B2 --> C2[ClickHouse Kafka Table: queue]
+        C2 --> D2[Materialized View: consumer - Aggregates near real-time]
+        D2 --> E2[ClickHouse Table: daily]
+        E2 --> F2[Dashboard / Reports - pre-aggregated, fast]
     end
 
 ```
